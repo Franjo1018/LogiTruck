@@ -1,4 +1,4 @@
-package com.example.prueba
+package com.example.prueba.screens.auth
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -35,6 +35,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.prueba.R
 
 private val NaranjaCTA = Color(0xFFB5651D)
 private val NaranjaClaro = Color(0xFFD9A468)

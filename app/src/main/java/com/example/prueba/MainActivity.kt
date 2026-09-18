@@ -11,6 +11,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.example.prueba.screens.auth.LoginFormScreen
+import com.example.prueba.screens.auth.LoginScreen
 
 // Pantallas disponibles. Cuando migres a Navigation Compose,
 // esto se reemplaza por rutas de un NavHost.
