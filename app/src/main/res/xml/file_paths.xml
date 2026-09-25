@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Carpeta donde el FileProvider (ver AndroidManifest.xml) permite escribir/leer archivos
+     compartidos con otras apps: solo cache/fotos/, donde CapturaFoto.kt crea la foto temporal
+     antes de subirla a Firebase Storage. -->
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <cache-path name="fotos" path="fotos/" />
+</paths>

@@ -1,5 +1,11 @@
-package com.logictruck.ui.screens
+@file:OptIn(ExperimentalMaterial3Api::class)
 
+package com.example.prueba.screens.conductor
+
+import com.example.prueba.data.EstadoViaje
+import com.example.prueba.data.ViajeRepository
+
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -8,36 +14,52 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.prueba.components.NaranjaLogicTruck
+import com.example.prueba.components.PlomoMedio
+import com.example.prueba.components.coloresChipNaranja
+import com.example.prueba.components.coloresTopBarNaranja
+import com.example.prueba.components.fondoPatronLogicTruck
 
 data class ViajeHistorialItem(
     val id: Long,
     val origenDestino: String,
     val fecha: String,
-    val estado: EstadoViaje,
-    val kilometros: Int
-)
-
-private val historialDemo = listOf(
-    ViajeHistorialItem(1, "Lima → Trujillo", "17/09", EstadoViaje.EN_RUTA, 560),
-    ViajeHistorialItem(2, "Lima → Arequipa", "10/09", EstadoViaje.COMPLETADO, 1010),
-    ViajeHistorialItem(3, "Lima → Ica", "05/09", EstadoViaje.COMPLETADO, 300),
-    ViajeHistorialItem(4, "Lima → Chiclayo", "28/08", EstadoViaje.COMPLETADO, 770)
+    val estado: EstadoViaje
 )
 
 private enum class FiltroHistorial(val etiqueta: String) { TODOS("Todos"), COMPLETADOS("Completados"), EN_CURSO("En curso") }
 
 /**
- * Historial de viajes del conductor autenticado (tabla VIAJE filtrada por conductor_id).
- * TODO: paginar desde Room (PagingSource) cuando el historial crezca más allá de unas decenas de viajes.
+ * Historial de viajes del conductor autenticado, leído en tiempo real desde Firebase
+ * (empresas/{empresaId}/viajes vía ViajeRepository, filtrado por conductorUid). Empieza vacío
+ * hasta que el despachador le asigne al menos un viaje.
  */
 @Composable
-fun HistorialViajesScreen(
-    viajes: List<ViajeHistorialItem> = historialDemo,
-    onViajeClick: (ViajeHistorialItem) -> Unit = {}
-) {
+fun HistorialViajesScreen(empresaId: String = "", conductorUid: String = "") {
+    var viajes by remember { mutableStateOf<List<ViajeHistorialItem>>(emptyList()) }
+    var cargando by remember { mutableStateOf(true) }
     var filtro by remember { mutableStateOf(FiltroHistorial.TODOS) }
+
+    LaunchedEffect(empresaId, conductorUid) {
+        cargando = true
+        try {
+            viajes = ViajeRepository.listarPorConductor(empresaId, conductorUid).map {
+                ViajeHistorialItem(
+                    id = it.timestampMs,
+                    origenDestino = "${it.origen} → ${it.destino}",
+                    fecha = it.fecha,
+                    estado = it.estado
+                )
+            }
+        } catch (e: Exception) {
+            // Sin conexión: se muestra el historial vacío.
+        } finally {
+            cargando = false
+        }
+    }
 
     val viajesFiltrados = when (filtro) {
         FiltroHistorial.TODOS -> viajes
@@ -46,7 +68,17 @@ fun HistorialViajesScreen(
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Historial de viajes") }) }
+        modifier = Modifier.fondoPatronLogicTruck(),
+        containerColor = Color.Transparent,
+        topBar = {
+            TopAppBar(
+                title = { Text("Historial de viajes") },
+                // Deja libre la franja de 56dp donde ConductorHostScreen superpone el ícono
+                // de menú (☰), para que no quede debajo del título.
+                navigationIcon = { Spacer(modifier = Modifier.width(56.dp)) },
+                colors = coloresTopBarNaranja()
+            )
+        }
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
             LazyRow(
@@ -57,30 +89,47 @@ fun HistorialViajesScreen(
                     FilterChip(
                         selected = filtro == opcion,
                         onClick = { filtro = opcion },
-                        label = { Text(opcion.etiqueta) }
+                        label = { Text(opcion.etiqueta) },
+                        colors = coloresChipNaranja()
                     )
                 }
             }
 
-            LazyColumn(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(viajesFiltrados) { viaje ->
-                    OutlinedCard(onClick = { onViajeClick(viaje) }) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+            when {
+                cargando -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+                viajesFiltrados.isEmpty() -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        "Todavía no tienes viajes en tu historial.",
+                        modifier = Modifier.padding(24.dp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                else -> LazyColumn(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(viajesFiltrados) { viaje ->
+                        val colorFranja = if (viaje.estado == EstadoViaje.COMPLETADO) PlomoMedio.copy(alpha = 0.4f) else NaranjaLogicTruck
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                         ) {
-                            Column {
-                                Text(viaje.origenDestino, fontWeight = FontWeight.Medium)
-                                Text(
-                                    "${viaje.fecha} · ${viaje.kilometros} km",
-                                    style = MaterialTheme.typography.bodySmall
-                                )
+                            Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+                                Box(modifier = Modifier.fillMaxHeight().width(4.dp).background(colorFranja))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(12.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column {
+                                        Text(viaje.origenDestino, fontWeight = FontWeight.Medium)
+                                        Text(viaje.fecha, style = MaterialTheme.typography.bodySmall)
+                                    }
+                                    AssistChip(onClick = {}, label = { Text(viaje.estado.etiqueta) })
+                                }
                             }
-                            AssistChip(onClick = {}, label = { Text(viaje.estado.etiqueta) })
                         }
                     }
                 }

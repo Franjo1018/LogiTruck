@@ -1,7 +1,21 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.google.services)
 }
+
+// La API key de MapTiler (para el mapa real en "Flota en tiempo real") se guarda en
+// local.properties, NO acá, porque local.properties está en .gitignore y este archivo sí se
+// sube a git. Para que funcione el mapa, agrega esta línea a tu local.properties (junto a
+// sdk.dir, ya lo genera Android Studio solo):
+//   MAPTILER_API_KEY=tu_key_de_maptiler.com
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localProperties.load(new FileInputStream(localPropertiesFile))
+}
+def mapTilerApiKey = localProperties.getProperty('MAPTILER_API_KEY', '')
 
 android {
     namespace 'com.example.prueba'
@@ -19,6 +33,8 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField "String", "MAPTILER_API_KEY", "\"${mapTilerApiKey}\""
     }
 
     buildTypes {
@@ -33,6 +49,7 @@ android {
     }
     buildFeatures {
         compose true
+        buildConfig true
     }
 }
 
@@ -45,6 +62,29 @@ dependencies {
     implementation libs.androidx.compose.ui.graphics
     implementation libs.androidx.compose.ui.tooling.preview
     implementation libs.androidx.compose.material3
+    implementation libs.androidx.compose.material.icons.extended
+    implementation libs.androidx.lifecycle.viewmodel.compose
+    implementation libs.androidx.room.runtime
+    implementation libs.androidx.room.ktx
+    ksp libs.androidx.room.compiler
+    implementation platform(libs.firebase.bom)
+    implementation libs.firebase.database
+    implementation libs.firebase.auth
+    // Fotos reales (factura de combustible, evidencia de incidencias): se suben a Firebase
+    // Storage (empresas/{empresaId}/...) y se guarda la URL de descarga en Realtime Database.
+    implementation libs.firebase.storage
+    implementation libs.kotlinx.coroutines.play.services
+    // Para mostrar las fotos subidas (Uri local antes de subir, o URL de Storage después) en
+    // Compose sin escribir manejo de bitmaps a mano.
+    implementation libs.coil.compose
+    // Mapa real (calles/terreno) en "Flota en tiempo real": MapLibre (SDK open source, sin
+    // licencia propietaria) + tiles de MapTiler (cuenta gratis propia, ~100,000 cargas/mes,
+    // no compartida con miles de otras apps como pasaba con los tiles anónimos de OpenStreetMap
+    // — por eso esos se bloqueaban). La API key va en local.properties, ver arriba.
+    // 12.3.1 y no una versión más nueva a propósito: la serie 13.x cambió el motor de
+    // renderizado por defecto a Vulkan, que puede dar problemas en emuladores como BlueStacks;
+    // 12.3.1 ya incluye el soporte de páginas de 16 KB que pide Google Play desde nov/2025.
+    implementation 'org.maplibre.gl:android-sdk:12.3.1'
     testImplementation libs.junit
     androidTestImplementation libs.androidx.junit
     androidTestImplementation libs.androidx.espresso.core

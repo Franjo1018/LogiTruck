@@ -1,6 +1,8 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.logictruck.ui.screens
+package com.example.prueba.screens.admin
+
+import com.example.prueba.data.*
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -16,7 +18,7 @@ import androidx.compose.ui.unit.dp
 
 data class ItemChecklist(val descripcion: String, val completado: Boolean)
 
-data class RegistroCombustible(val litros: Double, val costo: Double, val lugar: String, val hora: String)
+data class EventoViaje(val descripcion: String, val hora: String)
 
 data class ViajeCargaDetalle(
     val origenDestino: String,
@@ -32,7 +34,7 @@ data class ViajeCargaDetalle(
 )
 
 private val detalleAdminDemo = ViajeCargaDetalle(
-    origenDestino = "Lima → Trujillo",
+    origenDestino = "Trujillo → Chiclayo",
     conductor = "Carlos Mendoza",
     placa = "T4X-882",
     cargaDescripcion = "Cemento, 200 sacos",
@@ -45,10 +47,10 @@ private val detalleAdminDemo = ViajeCargaDetalle(
     ),
     bitacora = listOf(
         EventoViaje("Salida de almacén", "6:05 pm"),
-        EventoViaje("Paso por Pativilca", "8:40 pm")
+        EventoViaje("Paso por Pacasmayo", "8:40 pm")
     ),
     incidencias = listOf(
-        Incidencia(1, "Lima → Trujillo", "Carlos Mendoza", "Llanta baja en Chimbote", SeveridadIncidencia.MODERADA, "17/09", false)
+        Incidencia(1, "Trujillo → Chiclayo", "Carlos Mendoza", "Llanta baja cerca de Pacasmayo", SeveridadIncidencia.MODERADA, "17/09", false)
     ),
     combustible = listOf(
         RegistroCombustible(80.0, 320.0, "Grifo Primax - Pativilca", "8:50 pm")
@@ -125,7 +127,7 @@ fun ViajeCargaDetalleScreen(
             Seccion("Combustible") {
                 viaje.combustible.forEach { registro ->
                     Text(
-                        "${registro.litros} L · S/ ${registro.costo} · ${registro.lugar} (${registro.hora})",
+                        "${registro.galones} gal · S/ ${registro.costo} · ${registro.lugar} (${registro.hora})",
                         style = MaterialTheme.typography.bodySmall
                     )
                 }

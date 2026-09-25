@@ -1,0 +1,74 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "membresias": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid && !data.exists()"
+      }
+    },
+
+    "empresas": {
+      "$empresaId": {
+        ".read": "auth != null && root.child('membresias').child(auth.uid).child('empresaId').val() === $empresaId",
+
+        "nombre": {
+          ".write": "auth != null && root.child('membresias').child(auth.uid).child('empresaId').val() === $empresaId"
+        },
+
+        "usuarios": {
+          "$uid": {
+            ".write": "auth != null && root.child('membresias').child(auth.uid).child('empresaId').val() === $empresaId && (auth.uid === $uid || root.child('membresias').child(auth.uid).child('rol').val() === 'ADMINISTRADOR')"
+          }
+        },
+
+        "vehiculos": {
+          "$vehiculoId": {
+            ".write": "auth != null && root.child('membresias').child(auth.uid).child('empresaId').val() === $empresaId && (root.child('membresias').child(auth.uid).child('rol').val() === 'ADMINISTRADOR' || root.child('membresias').child(auth.uid).child('rol').val() === 'DESPACHADOR')"
+          }
+        },
+
+        "incidencias": {
+          "$incidenciaId": {
+            ".write": "auth != null && root.child('membresias').child(auth.uid).child('empresaId').val() === $empresaId"
+          }
+        },
+
+        "mensajes": {
+          "$conductorUid": {
+            "$mensajeId": {
+              ".write": "auth != null && root.child('membresias').child(auth.uid).child('empresaId').val() === $empresaId && (auth.uid === $conductorUid || root.child('membresias').child(auth.uid).child('rol').val() === 'ADMINISTRADOR' || root.child('membresias').child(auth.uid).child('rol').val() === 'DESPACHADOR')"
+            }
+          }
+        },
+
+        "combustible": {
+          "$registroId": {
+            ".write": "auth != null && root.child('membresias').child(auth.uid).child('empresaId').val() === $empresaId"
+          }
+        },
+
+        "ubicaciones": {
+          "$conductorUid": {
+            ".write": "auth != null && auth.uid === $conductorUid && root.child('membresias').child(auth.uid).child('empresaId').val() === $empresaId"
+          }
+        },
+
+        "viajes": {
+          "$viajeId": {
+            ".write": "auth != null && root.child('membresias').child(auth.uid).child('empresaId').val() === $empresaId"
+          }
+        }
+      }
+    },
+
+    "invitaciones": {
+      "$codigo": {
+        ".read": true,
+        ".write": "auth != null && root.child('membresias').child(auth.uid).child('rol').val() === 'ADMINISTRADOR'"
+      }
+    }
+  }
+}

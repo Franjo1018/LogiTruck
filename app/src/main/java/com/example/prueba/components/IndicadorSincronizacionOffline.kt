@@ -1,4 +1,4 @@
-package com.logictruck.ui.screens
+package com.example.prueba.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background

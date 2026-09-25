@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "588373747696",
+    "firebase_url": "https://logictruck-default-rtdb.firebaseio.com",
+    "project_id": "logictruck",
+    "storage_bucket": "logictruck.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:588373747696:android:af97ad6b951066a4835f35",
+        "android_client_info": {
+          "package_name": "com.example.prueba"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAlXNQEfmB9GuN8cfx-A2YIOGe0yXoGUOM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
